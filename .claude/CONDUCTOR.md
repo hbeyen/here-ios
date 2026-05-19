@@ -14,10 +14,10 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
 
 | ID  | Status | Owner | Title |
 | --- | ------ | ----- | ----- |
-| 001 | DONE | Fresh Claude Code session | [SignIn → Places list end-to-end](tasks/001-signin-to-places-end-to-end.md) — merged as PR #3 (`26075b0`). Decisions logged below. |
+| 001 | DONE | Fresh Claude Code session | [SignIn → Places list end-to-end](tasks/001-signin-to-places-end-to-end.md) — merged as PR #3 (`26075b0`). |
 | 002 | OPEN | Conductor inline OR fresh session | [GitHub Actions CI for here-ios](tasks/002-github-actions-ci.md) |
-| 003 | OPEN | Fresh Claude Code session | [Create new place flow](tasks/003-create-new-place.md) |
-| 004 | OPEN | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) |
+| 003 | DONE | Fresh Claude Code session | [Create new place flow](tasks/003-create-new-place.md) — merged as PR #5 (`73c295a`). |
+| 004 | OPEN | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) — Place + credentials fetched separately (see decisions log below). |
 
 ## Status legend
 
@@ -36,6 +36,12 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
   1. **READ paths bypass the Cloudflare worker.** `PlacesService.list()` queries Supabase PostgREST directly (`/rest/v1/places?owner_id=eq.…`) using the anon JWT + an `Authorization: Bearer <access_token>` header. RLS enforces owner scoping. Reason: `GET /api/places` doesn't exist on the worker — only POST/DELETE. The web broadcaster index does the same. If a worker GET ever lands, swap the URL in `PlacesService.list()` and drop the apikey header.
   2. **WRITE paths still go through the worker.** Create/update/delete touch external resources (Cloudflare Stream Live Input provisioning) so they live in the worker. Task 003 (create place) POSTs to `/api/places`.
   3. **Info.plist is xcodegen-managed via `targets.Here.info.properties`**, NOT `GENERATE_INFOPLIST_FILE: YES + INFOPLIST_KEY_*`. Xcode silently drops custom keys whose suffix isn't in Apple's known-key allowlist (`HERE_SUPABASE_ANON_KEY` is one such). Future custom plist keys go in `project.yml`'s `info.properties` block. `Here/Resources/Info.plist` is committed.
+- **2026-05-19** — Task 003 merged as PR #5 (`73c295a`). MapKit circular geofence (fixed crosshair, user pans map under it — matches Apple's Wallet/Find My pattern). Sheet presentation for create flow. Custom dark-theme form (not SwiftUI `Form` — to match `PlacesView` aesthetic).
+- **2026-05-19** — **Architectural decision: Place is the canonical resource; credentials are a separate sub-resource.** Today, `POST /api/places` returns `{ slug, rtmps, webRTC, playback }` — a credentials shape, not a Place. The iOS client compensates by refetching the list after create. This is a **temporary pragmatic state** until Here-Audio's backend is refactored to return `{ place: Place, credentials: StreamCredentials }` (filed as a separate Here-Audio task). Implications:
+  - **Reads of credentials get their own endpoint**: `GET /api/places/{slug}/stream`. Already exists for the web dashboard.
+  - **Place gets refreshed via PostgREST**: read from `/rest/v1/places?slug=eq.<slug>` with anon JWT + RLS.
+  - **Task 004 (per-place dashboard) builds on this**: fetches Place and credentials separately. When entering from "just created" (deep-link from NewPlace), pass both. When entering from list-tap, the Place is already in the ViewModel; only credentials are fetched.
+  - **Future expansion** (listener-only client, embed, Apple Watch glance, "Show stream key requires Face ID"): the split makes each client request only what it's authorized to see. Bundling everything into `POST /api/places` would force the cleaner split later anyway.
 
 ## How to dispatch a task
 
