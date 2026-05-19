@@ -17,7 +17,8 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
 | 001 | DONE | Fresh Claude Code session | [SignIn → Places list end-to-end](tasks/001-signin-to-places-end-to-end.md) — merged as PR #3 (`26075b0`). |
 | 002 | OPEN | Conductor inline OR fresh session | [GitHub Actions CI for here-ios](tasks/002-github-actions-ci.md) |
 | 003 | DONE | Fresh Claude Code session | [Create new place flow](tasks/003-create-new-place.md) — merged as PR #5 (`73c295a`). |
-| 004 | OPEN | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) — Place + credentials fetched separately (see decisions log below). |
+| 004 | DONE | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) — merged as PR #7 (`b22aa73`). |
+| 005 | OPEN | Fresh Claude Code session | ReplayKit broadcast extension — port from Here-Audio/ios/App/BroadcastUpload, wire to PlaceDashboardView's "Go live" card. Brief to be written. |
 
 ## Status legend
 
@@ -37,6 +38,10 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
   2. **WRITE paths still go through the worker.** Create/update/delete touch external resources (Cloudflare Stream Live Input provisioning) so they live in the worker. Task 003 (create place) POSTs to `/api/places`.
   3. **Info.plist is xcodegen-managed via `targets.Here.info.properties`**, NOT `GENERATE_INFOPLIST_FILE: YES + INFOPLIST_KEY_*`. Xcode silently drops custom keys whose suffix isn't in Apple's known-key allowlist (`HERE_SUPABASE_ANON_KEY` is one such). Future custom plist keys go in `project.yml`'s `info.properties` block. `Here/Resources/Info.plist` is committed.
 - **2026-05-19** — Task 003 merged as PR #5 (`73c295a`). MapKit circular geofence (fixed crosshair, user pans map under it — matches Apple's Wallet/Find My pattern). Sheet presentation for create flow. Custom dark-theme form (not SwiftUI `Form` — to match `PlacesView` aesthetic).
+- **2026-05-19** — Task 004 merged as PR #7 (`b22aa73`). Per-place dashboard with credentials + listener QR + share. Two watch-outs noted by the implementing session that the conductor should keep an eye on:
+  1. **Deep-link push assumes NewPlace opens from the root of the navigation stack.** If a future flow opens NewPlace from a drilled-in screen (e.g. tier-upgrade prompt → "Create another"), the `justCreated` state machine + post-dismiss push needs a rework.
+  2. **Listener URL hard-codes `here-audio.henock-23c.workers.dev`** — `AppEnvironment.workerBaseURL` is API-rooted so the listener path didn't fit it. When Here-Audio's custom domain (task 003 on Here-Audio) lands, add `AppEnvironment.listenerBaseURL` and route the QR generator through it.
+  3. **Confirmed credentials response shape**: `{ rtmps: { url, streamKey }, webRTC: { url }, playback: { hls, dash } }`. RTMPS is a nested object, not flat url + key. Task 017's backend refactor must preserve this nested structure inside `credentials`.
 - **2026-05-19** — **Architectural decision: Place is the canonical resource; credentials are a separate sub-resource.** Today, `POST /api/places` returns `{ slug, rtmps, webRTC, playback }` — a credentials shape, not a Place. The iOS client compensates by refetching the list after create. This is a **temporary pragmatic state** until Here-Audio's backend is refactored to return `{ place: Place, credentials: StreamCredentials }` (filed as a separate Here-Audio task). Implications:
   - **Reads of credentials get their own endpoint**: `GET /api/places/{slug}/stream`. Already exists for the web dashboard.
   - **Place gets refreshed via PostgREST**: read from `/rest/v1/places?slug=eq.<slug>` with anon JWT + RLS.
