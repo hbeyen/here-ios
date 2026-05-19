@@ -12,7 +12,7 @@ import SwiftUI
 /// (Wallet add-card location, Find My pin drop).
 struct NewPlaceView: View {
   let onCancel: () -> Void
-  let onCreated: (String) -> Void
+  let onCreated: (NewPlaceViewModel.SubmitResult) -> Void
 
   @State private var viewModel = NewPlaceViewModel()
   @State private var cameraPosition: MapCameraPosition = .region(
@@ -221,7 +221,7 @@ struct NewPlaceView: View {
     Button {
       Task {
         if let result = await viewModel.input.submit() {
-          onCreated(result.slug)
+          onCreated(result)
         }
       }
     } label: {
@@ -398,3 +398,5 @@ final class LocationProvider: NSObject, ObservableObject, CLLocationManagerDeleg
 #Preview {
   NewPlaceView(onCancel: {}, onCreated: { _ in })
 }
+
+
