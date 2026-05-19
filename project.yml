@@ -1,0 +1,54 @@
+name: Here
+options:
+  bundleIdPrefix: fm.here
+  deploymentTarget:
+    iOS: '17.0'
+  developmentLanguage: en
+  createIntermediateGroups: true
+  groupSortPosition: top
+  generateEmptyDirectories: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: 7594TCUA42
+    SWIFT_VERSION: '5.9'
+    IPHONEOS_DEPLOYMENT_TARGET: '17.0'
+    CODE_SIGN_STYLE: Automatic
+    ENABLE_PREVIEWS: YES
+    TARGETED_DEVICE_FAMILY: '1'
+targets:
+  Here:
+    type: application
+    platform: iOS
+    deploymentTarget: '17.0'
+    sources:
+      - path: Here
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: fm.here.app
+        PRODUCT_NAME: Here
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: HERE
+        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "HERE uses your location to draw a geofence around your venue."
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "HERE uses the microphone for voice broadcasts."
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_EMIT_LOC_STRINGS: YES
+        MARKETING_VERSION: '0.0.1'
+        CURRENT_PROJECT_VERSION: '1'
+schemes:
+  Here:
+    build:
+      targets:
+        Here: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

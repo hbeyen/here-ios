@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Xcode build artifacts
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+
+# SwiftPM
+.swiftpm/
+.build/
+Package.resolved
+
+# Fastlane (auto-generated)
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# CocoaPods (not using yet, but ignore preemptively)
+Pods/
+Podfile.lock
+
+# Coverage
+*.xccoverage
+*.xcresult
+
+# Claude Code per-session worktrees + plans
+.claude/worktrees/
+.claude/plans/
