@@ -35,6 +35,13 @@ final class SessionService {
     Keychain.get(KeychainKey.accessToken)
   }
 
+  var currentUserId: String? {
+    if case .signedIn(let user) = state {
+      return user.id
+    }
+    return Keychain.get(KeychainKey.userId)
+  }
+
   init() {
     restore()
   }
