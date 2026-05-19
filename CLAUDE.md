@@ -87,6 +87,14 @@ Here/
 - Store the access + refresh tokens in Keychain.
 - **No magic link on native.** Web keeps it; native doesn't need it once SiwA is reliable.
 
+## Info.plist + the Supabase anon key
+
+The Info.plist is a **manual file** at `Here/Resources/Info.plist`, generated and tracked by xcodegen's `info:` block in `project.yml`. Xcode's `GENERATE_INFOPLIST_FILE=YES` synthesis was tried first but silently drops `INFOPLIST_KEY_*` build settings whose suffix isn't in Apple's known-key allowlist (e.g. `INFOPLIST_KEY_HERE_SUPABASE_ANON_KEY` is just dropped). Switching to xcodegen-managed `info.properties` keeps the standard-key baseline and lets us add custom keys.
+
+`HERE_SUPABASE_ANON_KEY` is the public **anon** key (role: `anon`, RLS-gated). It's the same value Here-Audio ships in its client bundle as `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Safe to commit. The server-only **service-role** key never leaves Here-Audio's Cloudflare Worker — it must never appear in this repo.
+
+To rotate: change the value in `project.yml` → `xcodegen generate` → rebuild. `AppEnvironment.supabaseAnonKey` reads it via `Bundle.main.object(forInfoDictionaryKey: "HERE_SUPABASE_ANON_KEY")`.
+
 ## Conductor / task system
 
 This repo will use the same conductor pattern as Here-Audio:

@@ -21,5 +21,15 @@ extension Locator {
         SessionService()
       }
     }
+
+    register(PlacesService.self) {
+      MainActor.assumeIsolated {
+        PlacesService(
+          api: Locator.shared.resolve(APIClient.self),
+          environment: Locator.shared.resolve(AppEnvironment.self),
+          session: Locator.shared.resolve(SessionService.self)
+        )
+      }
+    }
   }
 }

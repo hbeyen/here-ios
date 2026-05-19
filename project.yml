@@ -27,17 +27,28 @@ targets:
       properties:
         com.apple.developer.applesignin:
           - Default
+    # Manual Info.plist (not GENERATE_INFOPLIST_FILE) so we can ship a
+    # custom HERE_SUPABASE_ANON_KEY — Xcode's INFOPLIST_KEY_* synthesis
+    # silently drops anything outside its known-key allowlist.
+    info:
+      path: Here/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: HERE
+        UILaunchScreen:
+          UIColorName: ''
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
+        NSLocationWhenInUseUsageDescription: "HERE uses your location to draw a geofence around your venue."
+        NSMicrophoneUsageDescription: "HERE uses the microphone for voice broadcasts."
+        # Public Supabase anon key (role: anon, project ref: xiqyaryjagujgsxcuabb).
+        # RLS enforces auth on every read — safe to commit. Same value Here-Audio
+        # ships in its client bundle as NEXT_PUBLIC_SUPABASE_ANON_KEY.
+        HERE_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhpcXlhcnlqYWd1amdzeGN1YWJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1MzQyNDksImV4cCI6MjA5NDExMDI0OX0.JntNUnxFjH7RvNCCRBakqlX88aj7cSG6vT4xkWU54XY"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: fm.here.app
         PRODUCT_NAME: Here
-        GENERATE_INFOPLIST_FILE: YES
-        INFOPLIST_KEY_CFBundleDisplayName: HERE
-        INFOPLIST_KEY_NSLocationWhenInUseUsageDescription: "HERE uses your location to draw a geofence around your venue."
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "HERE uses the microphone for voice broadcasts."
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait
-        INFOPLIST_KEY_UIRequiresFullScreen: YES
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         SWIFT_EMIT_LOC_STRINGS: YES
         MARKETING_VERSION: '0.0.1'
