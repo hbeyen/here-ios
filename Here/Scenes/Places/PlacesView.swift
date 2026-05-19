@@ -10,6 +10,7 @@ struct PlacesView: View {
 
   @State private var viewModel = PlacesViewModel()
   @State private var isSettingsPresented = false
+  @State private var isNewPlacePresented = false
 
   var body: some View {
     NavigationStack {
@@ -27,6 +28,15 @@ struct PlacesView: View {
         isSettingsPresented = false
         onSignOut()
       })
+    }
+    .sheet(isPresented: $isNewPlacePresented) {
+      NewPlaceView(
+        onCancel: { isNewPlacePresented = false },
+        onCreated: { _ in
+          isNewPlacePresented = false
+          Task { await viewModel.input.refresh() }
+        }
+      )
     }
   }
 
@@ -68,6 +78,17 @@ struct PlacesView: View {
         }
       }
       Spacer()
+      if viewModel.output.status == .loaded {
+        Button {
+          isNewPlacePresented = true
+        } label: {
+          Image(systemName: "plus")
+            .font(.system(size: 18, weight: .regular))
+            .foregroundStyle(.white.opacity(0.7))
+            .frame(width: 44, height: 44)
+        }
+        .accessibilityLabel("New place")
+      }
       Button {
         isSettingsPresented = true
       } label: {
@@ -107,7 +128,7 @@ struct PlacesView: View {
         .padding(.top, 8)
         .padding(.horizontal, 32)
       Button {
-        // Wired in a follow-up task.
+        isNewPlacePresented = true
       } label: {
         Text("Start")
           .font(.system(size: 15, weight: .semibold))
@@ -119,8 +140,6 @@ struct PlacesView: View {
       }
       .padding(.horizontal, 24)
       .padding(.top, 32)
-      .disabled(true)
-      .opacity(0.55)
       Spacer()
     }
     .frame(maxWidth: .infinity)
