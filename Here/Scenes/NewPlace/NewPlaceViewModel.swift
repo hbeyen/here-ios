@@ -27,8 +27,19 @@ final class NewPlaceViewModel: ViewModelType {
     var canSubmit: Bool
   }
 
-  struct SubmitResult: Equatable {
+  struct SubmitResult: Equatable, Hashable, Identifiable {
     let slug: String
+    let credentials: StreamCredentials
+
+    var id: String { slug }
+
+    static func == (lhs: SubmitResult, rhs: SubmitResult) -> Bool {
+      lhs.slug == rhs.slug
+    }
+
+    func hash(into hasher: inout Hasher) {
+      hasher.combine(slug)
+    }
   }
 
   static let accentSwatches: [String] = [
@@ -129,7 +140,7 @@ final class NewPlaceViewModel: ViewModelType {
         center: center,
         geofence: polygon
       )
-      return SubmitResult(slug: response.slug)
+      return SubmitResult(slug: response.slug, credentials: response.credentials)
     } catch APIError.unauthorized {
       output.errorMessage = "Your session expired. Sign back in and try again."
       return nil

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		005F15E7B4E9D31591E6C048 /* NewPlaceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA1C7E0E51D40AAD19CBE6C1 /* NewPlaceViewModel.swift */; };
+		0C6D939B7C5752B6B2B6C7F6 /* PlaceDashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2238D73EB17890112389016 /* PlaceDashboardViewModel.swift */; };
 		14F0F93696A55BA22CF6489A /* ViewModelType.swift in Sources */ = {isa = PBXBuildFile; fileRef = B223B7925BD9CBC0B75736AE /* ViewModelType.swift */; };
 		159CD278F9680ECDB7E30FC3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB59B70C205C718D519C7642 /* Assets.xcassets */; };
 		1883DA26CC6D753455DCFE74 /* AppleSignInController.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABADA8DC142141024F59ED39 /* AppleSignInController.swift */; };
@@ -21,14 +22,17 @@
 		69B062BFDC6F8949B66F717C /* PlacesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62C0E144BA5F1C4F3CBC5FF /* PlacesView.swift */; };
 		6F6DB51F812DC8278F35129A /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F331B60F0722E79442FC747 /* Coordinator.swift */; };
 		725180D7F9DB004E1B15DBA5 /* Keychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D084E5E96FC76EB1A888D74 /* Keychain.swift */; };
+		89A45DA4B3A6A65CB0DDD350 /* StreamCredentialsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A18B81F2CFE92A18B9BABB2A /* StreamCredentialsService.swift */; };
 		90A301C549DCD95525C42403 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6938C796147553C4DDF3E1D3 /* APIClient.swift */; };
 		90E14D668BFABB00021B9542 /* NewPlaceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 969ABEEF77B6302C311779C8 /* NewPlaceView.swift */; };
 		95A4C41B119979E4D8FB0FC4 /* SignInView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EA9A3073A3B88B6224A699C /* SignInView.swift */; };
 		AFAC62A3FA98140000BD0BB0 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = B0B40F04826EF5B49BDF22AC /* AppEnvironment.swift */; };
+		B253999AF329C9C545839DF0 /* PlaceDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 726F8633ABEDA34B1F546A97 /* PlaceDashboardView.swift */; };
 		B5795E00D75FA74BF66B1C3F /* SessionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2B17A03BAD0630C875D422E /* SessionService.swift */; };
 		BE5CFF1F314ECCF050FCED1A /* APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38C9FE44A0C5B339EAB66F80 /* APIError.swift */; };
 		C363EE9CE8B6697DE4464D53 /* Locator+Dependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CE766A344C7895A04E9109D /* Locator+Dependencies.swift */; };
 		CA5A116CB474D199C7313D68 /* SupabaseAuthClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2CCBFE8B5A8D1108A03E606 /* SupabaseAuthClient.swift */; };
+		CD5D5E855A94404A3F2C2E8F /* StreamCredentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42A0D64E38B91C0BC4D70BA /* StreamCredentials.swift */; };
 		E3EE6EC10EC84E511CA7093A /* Geofence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7208EA227007A88C1779B3AE /* Geofence.swift */; };
 		F07A38227312A43BE748C7A9 /* Place.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6CE9FBD6269A3D00E2DFDB18 /* Place.swift */; };
 		F63D6E7221428EFD94E749ED /* PlacesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A8354A325D7503E0C497383 /* PlacesService.swift */; };
@@ -49,11 +53,14 @@
 		6CE9FBD6269A3D00E2DFDB18 /* Place.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Place.swift; sourceTree = "<group>"; };
 		708716DA761D582AC56B1804 /* Here.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Here.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7208EA227007A88C1779B3AE /* Geofence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Geofence.swift; sourceTree = "<group>"; };
+		726F8633ABEDA34B1F546A97 /* PlaceDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDashboardView.swift; sourceTree = "<group>"; };
 		7B0AE19F2AD27273AC3CBD35 /* Locator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Locator.swift; sourceTree = "<group>"; };
 		969ABEEF77B6302C311779C8 /* NewPlaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPlaceView.swift; sourceTree = "<group>"; };
 		9C37931CC09D9FCA166C26AA /* PlacesViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesViewModel.swift; sourceTree = "<group>"; };
 		9CE766A344C7895A04E9109D /* Locator+Dependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Locator+Dependencies.swift"; sourceTree = "<group>"; };
 		9EA9A3073A3B88B6224A699C /* SignInView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInView.swift; sourceTree = "<group>"; };
+		A18B81F2CFE92A18B9BABB2A /* StreamCredentialsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCredentialsService.swift; sourceTree = "<group>"; };
+		A2238D73EB17890112389016 /* PlaceDashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaceDashboardViewModel.swift; sourceTree = "<group>"; };
 		A62C0E144BA5F1C4F3CBC5FF /* PlacesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlacesView.swift; sourceTree = "<group>"; };
 		AB59B70C205C718D519C7642 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		ABADA8DC142141024F59ED39 /* AppleSignInController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleSignInController.swift; sourceTree = "<group>"; };
@@ -62,6 +69,7 @@
 		B5D1A64FE5CD6084FEC7DE41 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		B9FFF6B5EA3E59E021557FC7 /* AppCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCoordinator.swift; sourceTree = "<group>"; };
 		BA1C7E0E51D40AAD19CBE6C1 /* NewPlaceViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewPlaceViewModel.swift; sourceTree = "<group>"; };
+		D42A0D64E38B91C0BC4D70BA /* StreamCredentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamCredentials.swift; sourceTree = "<group>"; };
 		DEBE17C4AB4E231DDA0BECE2 /* SignInCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInCoordinator.swift; sourceTree = "<group>"; };
 		E2B17A03BAD0630C875D422E /* SessionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionService.swift; sourceTree = "<group>"; };
 		F2CCBFE8B5A8D1108A03E606 /* SupabaseAuthClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseAuthClient.swift; sourceTree = "<group>"; };
@@ -72,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				9EB7025A8BEBED9E0F16DB00 /* NewPlace */,
+				2958C34F95AD9360F910BC67 /* Place */,
 				AA7ACA4857327AA189AAD116 /* Places */,
 				99C1863E61B7B2CD6CB0EA0A /* Settings */,
 				985B7C4AE9FFA90906B14DC0 /* SignIn */,
@@ -84,6 +93,7 @@
 			children = (
 				1A8354A325D7503E0C497383 /* PlacesService.swift */,
 				E2B17A03BAD0630C875D422E /* SessionService.swift */,
+				A18B81F2CFE92A18B9BABB2A /* StreamCredentialsService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -95,6 +105,15 @@
 				F2CCBFE8B5A8D1108A03E606 /* SupabaseAuthClient.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		2958C34F95AD9360F910BC67 /* Place */ = {
+			isa = PBXGroup;
+			children = (
+				726F8633ABEDA34B1F546A97 /* PlaceDashboardView.swift */,
+				A2238D73EB17890112389016 /* PlaceDashboardViewModel.swift */,
+			);
+			path = Place;
 			sourceTree = "<group>";
 		};
 		35F90869B9211BD7D171D5FC /* Resources */ = {
@@ -186,6 +205,7 @@
 			children = (
 				7208EA227007A88C1779B3AE /* Geofence.swift */,
 				6CE9FBD6269A3D00E2DFDB18 /* Place.swift */,
+				D42A0D64E38B91C0BC4D70BA /* StreamCredentials.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -325,6 +345,8 @@
 				90E14D668BFABB00021B9542 /* NewPlaceView.swift in Sources */,
 				005F15E7B4E9D31591E6C048 /* NewPlaceViewModel.swift in Sources */,
 				F07A38227312A43BE748C7A9 /* Place.swift in Sources */,
+				B253999AF329C9C545839DF0 /* PlaceDashboardView.swift in Sources */,
+				0C6D939B7C5752B6B2B6C7F6 /* PlaceDashboardViewModel.swift in Sources */,
 				F63D6E7221428EFD94E749ED /* PlacesService.swift in Sources */,
 				69B062BFDC6F8949B66F717C /* PlacesView.swift in Sources */,
 				1E2CEB38CA3F942643C71474 /* PlacesViewModel.swift in Sources */,
@@ -333,6 +355,8 @@
 				2400466CDBB2520444822967 /* SignInCoordinator.swift in Sources */,
 				95A4C41B119979E4D8FB0FC4 /* SignInView.swift in Sources */,
 				587EF34A3A7968A08D2E1C0D /* SignInViewModel.swift in Sources */,
+				CD5D5E855A94404A3F2C2E8F /* StreamCredentials.swift in Sources */,
+				89A45DA4B3A6A65CB0DDD350 /* StreamCredentialsService.swift in Sources */,
 				CA5A116CB474D199C7313D68 /* SupabaseAuthClient.swift in Sources */,
 				14F0F93696A55BA22CF6489A /* ViewModelType.swift in Sources */,
 			);

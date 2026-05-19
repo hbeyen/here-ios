@@ -71,6 +71,52 @@ final class PlacesService {
     }
   }
 
+  /// Single-row fetch by slug. Same PostgREST path as `list()`, narrowed by
+  /// slug; RLS still scopes to rows the signed-in user can read. Used by the
+  /// per-place dashboard when entering from a "just created" deep-link (the
+  /// `POST /api/places` response carries credentials but not a full Place row).
+  func fetch(slug: String) async throws -> Place {
+    guard let accessToken = session.accessToken else {
+      throw APIError.unauthorized
+    }
+
+    guard var components = URLComponents(
+      url: environment.supabaseURL,
+      resolvingAgainstBaseURL: false
+    ) else {
+      throw APIError.invalidURL
+    }
+    components.path = "/rest/v1/places"
+    components.queryItems = [
+      URLQueryItem(name: "slug", value: "eq.\(slug)"),
+      URLQueryItem(name: "select", value: "id,slug,name,tagline,accent,is_active"),
+      URLQueryItem(name: "limit", value: "1")
+    ]
+    guard let url = components.url else {
+      throw APIError.invalidURL
+    }
+
+    let request = api.makeRequest(
+      url: url,
+      method: .get,
+      headers: [
+        "apikey": environment.supabaseAnonKey,
+        "Authorization": "Bearer \(accessToken)"
+      ]
+    )
+
+    do {
+      let rows = try await api.send(request, expecting: [Place].self)
+      guard let place = rows.first else {
+        throw APIError.server(status: 404, body: nil)
+      }
+      return place
+    } catch APIError.unauthorized {
+      session.signOut()
+      throw APIError.unauthorized
+    }
+  }
+
   func create(
     name: String,
     slug: String,
@@ -131,25 +177,23 @@ private struct CreatePlaceRequest: Encodable {
 
 /// Response from `POST /api/places`. The worker returns the slug plus
 /// freshly-minted Cloudflare Stream credentials — NOT a full Place row.
-/// Task 004 (per-place dashboard) will lean on `rtmps` + `playback` to show
-/// the broadcaster their ingest URL and to play back their own stream.
+/// The dashboard reconstructs the Place separately via `PlacesService.fetch`.
+///
+/// Per the 2026-05-19 architecture decision logged in `.claude/CONDUCTOR.md`,
+/// this flat shape is a temporary pragmatic state; the backend task to return
+/// `{ place, credentials }` is tracked separately. Until that lands, this
+/// type re-uses the `StreamCredentials` nested types so both call sites speak
+/// the same vocabulary.
 struct CreatePlaceResponse: Decodable, Equatable {
   let slug: String
-  let rtmps: RTMPS?
-  let webRTC: WebRTC?
-  let playback: Playback?
+  let rtmps: StreamCredentials.RTMPS?
+  let webRTC: StreamCredentials.WebRTC?
+  let playback: StreamCredentials.Playback?
 
-  struct RTMPS: Decodable, Equatable {
-    let url: String?
-    let streamKey: String?
-  }
-
-  struct WebRTC: Decodable, Equatable {
-    let url: String?
-  }
-
-  struct Playback: Decodable, Equatable {
-    let hls: String?
-    let dash: String?
+  /// View of the response as a `StreamCredentials`. Lets the dashboard
+  /// accept credentials from either the create response or
+  /// `StreamCredentialsService.fetch` without caring which produced them.
+  var credentials: StreamCredentials {
+    StreamCredentials(rtmps: rtmps, webRTC: webRTC, playback: playback)
   }
 }

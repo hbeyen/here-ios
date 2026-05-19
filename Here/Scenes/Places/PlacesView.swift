@@ -11,6 +11,7 @@ struct PlacesView: View {
   @State private var viewModel = PlacesViewModel()
   @State private var isSettingsPresented = false
   @State private var isNewPlacePresented = false
+  @State private var justCreated: NewPlaceViewModel.SubmitResult?
 
   var body: some View {
     NavigationStack {
@@ -19,6 +20,9 @@ struct PlacesView: View {
         content
       }
       .navigationBarHidden(true)
+      .navigationDestination(item: $justCreated) { created in
+        PlaceDashboardView(slug: created.slug, credentials: created.credentials)
+      }
     }
     .task {
       await viewModel.input.load()
@@ -32,9 +36,15 @@ struct PlacesView: View {
     .sheet(isPresented: $isNewPlacePresented) {
       NewPlaceView(
         onCancel: { isNewPlacePresented = false },
-        onCreated: { _ in
+        onCreated: { result in
           isNewPlacePresented = false
-          Task { await viewModel.input.refresh() }
+          Task {
+            await viewModel.input.refresh()
+            // Push the dashboard after the sheet finishes dismissing so the
+            // navigation transition reads cleanly.
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            justCreated = result
+          }
         }
       )
     }
@@ -150,7 +160,7 @@ struct PlacesView: View {
       Section {
         ForEach(viewModel.output.places) { place in
           NavigationLink {
-            PlaceDetailPlaceholder(place: place)
+            PlaceDashboardView(place: place)
           } label: {
             PlaceRow(place: place)
           }
@@ -229,29 +239,6 @@ private struct PlaceRow: View {
     let green = Double((value >> 8) & 0xFF) / 255.0
     let blue = Double(value & 0xFF) / 255.0
     return Color(red: red, green: green, blue: blue)
-  }
-}
-
-private struct PlaceDetailPlaceholder: View {
-  let place: Place
-
-  var body: some View {
-    ZStack {
-      Color.hereBackground.ignoresSafeArea()
-      VStack(spacing: 8) {
-        Text(place.name)
-          .font(.system(size: 24, weight: .semibold))
-          .foregroundStyle(.white)
-        Text("/\(place.slug)")
-          .font(.system(size: 13))
-          .foregroundStyle(.white.opacity(0.55))
-        Text("Per-place dashboard lands in a follow-up task.")
-          .font(.system(size: 12))
-          .foregroundStyle(.white.opacity(0.4))
-          .padding(.top, 12)
-      }
-    }
-    .navigationBarTitleDisplayMode(.inline)
   }
 }
 

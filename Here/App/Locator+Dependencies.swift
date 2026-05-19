@@ -31,5 +31,15 @@ extension Locator {
         )
       }
     }
+
+    register(StreamCredentialsService.self) {
+      MainActor.assumeIsolated {
+        StreamCredentialsService(
+          api: Locator.shared.resolve(APIClient.self),
+          environment: Locator.shared.resolve(AppEnvironment.self),
+          session: Locator.shared.resolve(SessionService.self)
+        )
+      }
+    }
   }
 }
