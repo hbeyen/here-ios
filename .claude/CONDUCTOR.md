@@ -18,7 +18,8 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
 | 002 | OPEN | Conductor inline OR fresh session | [GitHub Actions CI for here-ios](tasks/002-github-actions-ci.md) |
 | 003 | DONE | Fresh Claude Code session | [Create new place flow](tasks/003-create-new-place.md) — merged as PR #5 (`73c295a`). |
 | 004 | DONE | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) — merged as PR #7 (`b22aa73`). |
-| 005 | OPEN | Fresh Claude Code session | ReplayKit broadcast extension — port from Here-Audio/ios/App/BroadcastUpload, wire to PlaceDashboardView's "Go live" card. Brief to be written. |
+| 005 | OPEN — **BLOCKING** | Fresh Claude Code session | [Decode + surface Supabase auth error responses (hotfix)](tasks/005-supabase-auth-error-decoding.md) — sign-in is broken on device with a misleading parse error; this PR fixes the diagnostics so the next fix can target the real cause. |
+| 006 | OPEN | Fresh Claude Code session | ReplayKit broadcast extension — port from Here-Audio/ios/App/BroadcastUpload, wire to PlaceDashboardView's "Go live" card. Brief to be written. Hold until 005 lands + real cause is known. |
 
 ## Status legend
 
