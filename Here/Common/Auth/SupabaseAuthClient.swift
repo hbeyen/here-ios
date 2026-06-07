@@ -4,32 +4,26 @@ import Foundation
 /// `grant_type=id_token` exchange (Sign in with Apple → Supabase session).
 /// Refresh + sign-out land alongside their callers.
 final class SupabaseAuthClient {
+  // NOTE: no explicit `CodingKeys` with snake_case raw values here. The
+  // shared `APIClient.defaultDecoder()` already sets
+  // `keyDecodingStrategy = .convertFromSnakeCase`, which converts JSON keys
+  // (`access_token`) to camelCase (`accessToken`) BEFORE matching. Adding
+  // explicit `case accessToken = "access_token"` makes the decoder look for
+  // a key literally named `access_token` in the already-converted keyspace —
+  // which no longer exists — so every field fails as `keyNotFound`, surfacing
+  // as "data couldn't be read because it is missing". Let the strategy do it.
   struct Session: Decodable {
     let accessToken: String
     let refreshToken: String
     let expiresIn: Int?
     let tokenType: String?
     let user: User?
-
-    enum CodingKeys: String, CodingKey {
-      case accessToken = "access_token"
-      case refreshToken = "refresh_token"
-      case expiresIn = "expires_in"
-      case tokenType = "token_type"
-      case user
-    }
   }
 
   struct User: Decodable {
     let id: String
     let email: String?
     let userMetadata: [String: AnyJSON]?
-
-    enum CodingKeys: String, CodingKey {
-      case id
-      case email
-      case userMetadata = "user_metadata"
-    }
   }
 
   private let environment: AppEnvironment

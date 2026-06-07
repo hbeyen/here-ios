@@ -8,7 +8,7 @@ enum APIError: Error, LocalizedError {
   /// of the body. Carries the parsed message plus the original status + raw
   /// body so callers can log/diagnose if needed.
   case serverMessage(status: Int, message: String, body: String?)
-  case decoding(Error)
+  case decoding(Error, body: String? = nil)
   case unauthorized
 
   var errorDescription: String? {
@@ -24,7 +24,10 @@ enum APIError: Error, LocalizedError {
       return "Server error (\(status))."
     case .serverMessage(let status, let message, _):
       return "HTTP \(status): \(message)"
-    case .decoding(let error):
+    case .decoding(let error, let body):
+      if let body, !body.isEmpty {
+        return "Could not parse response (\(error.localizedDescription)). Body: \(body)"
+      }
       return "Could not parse response: \(error.localizedDescription)"
     case .unauthorized:
       return "Session expired. Please sign in again."
