@@ -4,6 +4,10 @@ This file is the coordination doc for the native iOS app. The **conductor** is w
 
 If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../CLAUDE.md) for code conventions. Architecture decision lives in [hbeyen/Here-Audio/ROADMAP.md](https://github.com/hbeyen/Here-Audio/blob/main/ROADMAP.md) — web for listeners, native for broadcasters.
 
+## Production blocker (cross-repo)
+
+**Cloudflare Stream is not enabled on the Cloudflare account** (`23ce1674f034310baff74067d4abc7b8`). Verified 2026-05-19 via the Stream API: token + account ID are correct and the token is valid+active, but the API returns `10002 / "Cloudflare Stream not enabled"`. Until Henock subscribes to Stream ($5/mo base + usage), `POST /api/places` hard-502s ("Authorization Failure") and no place gets a real WHIP/RTMPS Live Input — so ReplayKit (task 006) has nothing to push to. This is the single gate on the actual broadcasting feature. The `HERE_CLOUDFLARE_*` env vars are correctly set in the Worker (runtime + build); only the product enablement is missing. No code change needed once enabled.
+
 ## Active goals (v0.3 — 2026-Q3)
 
 - **Feature parity** with the retired Capacitor broadcaster surface: sign in, places list, create place, per-place dashboard, settings, sign out.
@@ -15,11 +19,12 @@ If you're a fresh session: read this top to bottom, then read [`CLAUDE.md`](../C
 | ID  | Status | Owner | Title |
 | --- | ------ | ----- | ----- |
 | 001 | DONE | Fresh Claude Code session | [SignIn → Places list end-to-end](tasks/001-signin-to-places-end-to-end.md) — merged as PR #3 (`26075b0`). |
-| 002 | OPEN | Conductor inline OR fresh session | [GitHub Actions CI for here-ios](tasks/002-github-actions-ci.md) |
+| 002 | DONE | Subagent | [GitHub Actions CI for here-ios](tasks/002-github-actions-ci.md) — merged as PR #13 (`127e434`). Build gate on every push/PR. |
 | 003 | DONE | Fresh Claude Code session | [Create new place flow](tasks/003-create-new-place.md) — merged as PR #5 (`73c295a`). |
 | 004 | DONE | Fresh Claude Code session | [Per-place dashboard](tasks/004-place-dashboard.md) — merged as PR #7 (`b22aa73`). |
 | 005 | DONE | Subagent + conductor | [Decode + surface Supabase auth error responses (hotfix)](tasks/005-supabase-auth-error-decoding.md) — diagnostics merged as PR #10; actual root-cause fix merged as PR #11. Sign-in works end-to-end on iPhone 17 Pro (2026-05-19). |
-| 006 | OPEN | Fresh Claude Code session | ReplayKit broadcast extension — port from Here-Audio/ios/App/BroadcastUpload, wire to PlaceDashboardView's "Go live" card. Brief to be written. |
+| 006 | **HOLD** | Fresh session (device) | [ReplayKit broadcast extension](tasks/006-replaykit-broadcast-extension.md) — the marquee feature. Brief written. **Blocked until Cloudflare Stream is enabled** (need a real WHIP endpoint to test against). |
+| 007 | OPEN | Fresh session / subagent | [Broadcaster management polish](tasks/007-broadcaster-management-polish.md) — editable display name + edit/delete place. No Stream dependency; simulator-testable. |
 
 ## Status legend
 
