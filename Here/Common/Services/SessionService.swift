@@ -84,6 +84,24 @@ final class SessionService {
     state = .signedIn(user)
   }
 
+  /// Updates the locally-held display name after a successful Supabase
+  /// metadata write. Keeps Keychain + the `signedIn` state in sync so a
+  /// relaunch shows the new name without a round-trip.
+  func setDisplayName(_ name: String) throws {
+    let trimmed = name.trimmingCharacters(in: .whitespaces)
+    if trimmed.isEmpty {
+      Keychain.delete(KeychainKey.displayName)
+    } else {
+      try Keychain.set(trimmed, forKey: KeychainKey.displayName)
+    }
+    guard case .signedIn(let user) = state else { return }
+    state = .signedIn(CurrentUser(
+      id: user.id,
+      email: user.email,
+      displayName: trimmed.isEmpty ? nil : trimmed
+    ))
+  }
+
   func signOut() {
     Keychain.delete(KeychainKey.accessToken)
     Keychain.delete(KeychainKey.refreshToken)

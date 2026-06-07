@@ -13,10 +13,16 @@ import UIKit
 ///   credentials are in hand, Place is fetched on appear.
 struct PlaceDashboardView: View {
   private let slug: String
+  private let onDeleted: () -> Void
   @State private var viewModel: PlaceDashboardViewModel
+  @State private var isEditPresented = false
+  @State private var isDeleteConfirmed = false
 
-  init(place: Place) {
+  @Environment(\.dismiss) private var dismiss
+
+  init(place: Place, onDeleted: @escaping () -> Void = {}) {
     self.slug = place.slug
+    self.onDeleted = onDeleted
     _viewModel = State(wrappedValue: PlaceDashboardViewModel(
       slug: place.slug,
       place: place,
@@ -24,8 +30,9 @@ struct PlaceDashboardView: View {
     ))
   }
 
-  init(slug: String, credentials: StreamCredentials?) {
+  init(slug: String, credentials: StreamCredentials?, onDeleted: @escaping () -> Void = {}) {
     self.slug = slug
+    self.onDeleted = onDeleted
     _viewModel = State(wrappedValue: PlaceDashboardViewModel(
       slug: slug,
       place: nil,
@@ -43,6 +50,7 @@ struct PlaceDashboardView: View {
           credentialsSection
           distributionSection
           goLiveSection
+          dangerZone
           if let error = viewModel.output.errorMessage {
             errorBanner(error)
           }
@@ -65,6 +73,37 @@ struct PlaceDashboardView: View {
     .toolbarBackground(Color.hereBackground, for: .navigationBar)
     .toolbarBackground(.visible, for: .navigationBar)
     .toolbarColorScheme(.dark, for: .navigationBar)
+    .toolbar {
+      ToolbarItem(placement: .topBarTrailing) {
+        Button("Edit") { isEditPresented = true }
+          .disabled(viewModel.output.place == nil)
+      }
+    }
+    .sheet(isPresented: $isEditPresented) {
+      if let place = viewModel.output.place {
+        EditPlaceView(
+          place: place,
+          onCancel: { isEditPresented = false },
+          onSaved: { updated in
+            isEditPresented = false
+            viewModel.input.applyEdit(updated)
+          }
+        )
+      }
+    }
+    .alert("Delete \(viewModel.output.place?.name ?? "this place")?", isPresented: $isDeleteConfirmed) {
+      Button("Delete", role: .destructive) {
+        Task {
+          if await viewModel.input.delete() {
+            onDeleted()
+            dismiss()
+          }
+        }
+      }
+      Button("Cancel", role: .cancel) {}
+    } message: {
+      Text("This can't be undone. Listeners will no longer reach this place.")
+    }
     .task {
       await viewModel.input.load()
     }
@@ -346,6 +385,35 @@ struct PlaceDashboardView: View {
       }
       .buttonStyle(.plain)
     }
+  }
+
+  // MARK: - Danger zone
+
+  private var dangerZone: some View {
+    Button {
+      isDeleteConfirmed = true
+    } label: {
+      HStack(spacing: 12) {
+        if viewModel.output.isDeleting {
+          ProgressView()
+            .tint(.red)
+        } else {
+          Image(systemName: "trash")
+            .font(.system(size: 15, weight: .regular))
+            .foregroundStyle(.red)
+        }
+        Text("Delete place")
+          .font(.system(size: 15, weight: .medium))
+          .foregroundStyle(.red)
+        Spacer()
+      }
+      .padding(16)
+      .frame(maxWidth: .infinity)
+      .background(Color.red.opacity(0.08))
+      .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+    .buttonStyle(.plain)
+    .disabled(viewModel.output.isDeleting || viewModel.output.place == nil)
   }
 
   // MARK: - Toast + error

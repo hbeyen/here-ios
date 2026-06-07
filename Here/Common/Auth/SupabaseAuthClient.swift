@@ -24,6 +24,19 @@ final class SupabaseAuthClient {
     let id: String
     let email: String?
     let userMetadata: [String: AnyJSON]?
+
+    /// Broadcaster-facing name, if one was set. Supabase stores it under
+    /// `full_name` (what `updateUser({ data: { full_name } })` writes) or, on
+    /// the very first Apple auth, `name`. Falls back to nil so callers keep
+    /// showing the email.
+    var displayName: String? {
+      for key in ["full_name", "name"] {
+        if let value = userMetadata?[key]?.stringValue, !value.isEmpty {
+          return value
+        }
+      }
+      return nil
+    }
   }
 
   private let environment: AppEnvironment
@@ -56,6 +69,48 @@ final class SupabaseAuthClient {
       body: body
     )
     return try await api.send(request, expecting: Session.self)
+  }
+
+  /// Persists a broadcaster-chosen display name to Supabase `user_metadata`.
+  /// REST equivalent of `supabase.auth.updateUser({ data: { full_name } })`:
+  /// PATCH `/auth/v1/user` with `{ "data": { "full_name": "<name>" } }`.
+  /// Needed because Apple only returns the name on the *first* auth, so a
+  /// user who deleted + reinstalled (or signed in on a second device) is left
+  /// with just the private-relay email until they set a name here.
+  func updateDisplayName(_ name: String, accessToken: String) async throws -> User {
+    guard var components = URLComponents(url: environment.supabaseURL, resolvingAgainstBaseURL: false) else {
+      throw APIError.invalidURL
+    }
+    components.path = "/auth/v1/user"
+    guard let url = components.url else {
+      throw APIError.invalidURL
+    }
+
+    let payload = UpdateUserPayload(data: .init(fullName: name))
+    let body = try api.encode(payload)
+    let request = api.makeRequest(
+      url: url,
+      method: .put,
+      headers: [
+        "apikey": environment.supabaseAnonKey,
+        "Authorization": "Bearer \(accessToken)"
+      ],
+      body: body
+    )
+    return try await api.send(request, expecting: User.self)
+  }
+
+  // No explicit snake_case `CodingKeys` here. `APIClient.defaultEncoder()`
+  // sets `keyEncodingStrategy = .convertToSnakeCase`, so `fullName` already
+  // serializes as `full_name`. Adding `case fullName = "full_name"` would
+  // make the encoder convert the *already*-snake_cased key again — the mirror
+  // image of the decode-side double-conversion bug logged in CONDUCTOR.md.
+  private struct UpdateUserPayload: Encodable {
+    let data: Metadata
+
+    struct Metadata: Encodable {
+      let fullName: String
+    }
   }
 
   private struct SignInPayload: Encodable {
