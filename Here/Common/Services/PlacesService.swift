@@ -117,6 +117,95 @@ final class PlacesService {
     }
   }
 
+  /// Edits an existing place's metadata (name / tagline / accent). Slug and
+  /// geofence are out of scope — slug is the row identity, geofence editing is
+  /// a separate MapKit task.
+  ///
+  /// Goes direct to PostgREST PATCH (not the worker): renaming touches no
+  /// external resource, and the `places_owner_update` RLS policy scopes the
+  /// write to the signed-in owner. `Prefer: return=representation` makes
+  /// PostgREST echo the updated row so we can reflect it immediately.
+  func update(
+    slug: String,
+    name: String,
+    tagline: String,
+    accent: String
+  ) async throws -> Place {
+    guard let accessToken = session.accessToken else {
+      throw APIError.unauthorized
+    }
+
+    guard var components = URLComponents(
+      url: environment.supabaseURL,
+      resolvingAgainstBaseURL: false
+    ) else {
+      throw APIError.invalidURL
+    }
+    components.path = "/rest/v1/places"
+    components.queryItems = [
+      URLQueryItem(name: "slug", value: "eq.\(slug)"),
+      URLQueryItem(name: "select", value: "id,slug,name,tagline,accent,is_active")
+    ]
+    guard let url = components.url else {
+      throw APIError.invalidURL
+    }
+
+    let body = UpdatePlaceRequest(name: name, tagline: tagline, accent: accent)
+    let request = api.makeRequest(
+      url: url,
+      method: .patch,
+      headers: [
+        "apikey": environment.supabaseAnonKey,
+        "Authorization": "Bearer \(accessToken)",
+        "Prefer": "return=representation"
+      ],
+      body: try api.encode(body)
+    )
+
+    do {
+      let rows = try await api.send(request, expecting: [Place].self)
+      guard let place = rows.first else {
+        // 200 with an empty array means RLS matched no row the user can write.
+        throw APIError.server(status: 404, body: nil)
+      }
+      return place
+    } catch APIError.unauthorized {
+      session.signOut()
+      throw APIError.unauthorized
+    }
+  }
+
+  /// Deletes a place. Goes through the worker (`DELETE /api/places?slug=…`)
+  /// rather than PostgREST: the worker also tears down the Cloudflare Stream
+  /// Live Input so it isn't orphaned. The worker is owner-scoped server-side
+  /// (403 if the slug isn't yours).
+  func delete(slug: String) async throws {
+    guard let accessToken = session.accessToken else {
+      throw APIError.unauthorized
+    }
+
+    var components = URLComponents()
+    components.queryItems = [URLQueryItem(name: "slug", value: slug)]
+    let base = environment.workerBaseURL.appendingPathComponent("api/places")
+    guard let query = components.percentEncodedQuery,
+          let url = URL(string: "\(base.absoluteString)?\(query)") else {
+      throw APIError.invalidURL
+    }
+
+    let request = api.makeRequest(
+      url: url,
+      method: .delete,
+      headers: ["Authorization": "Bearer \(accessToken)"]
+    )
+
+    do {
+      try await api.send(request)
+    } catch APIError.unauthorized {
+      session.signOut()
+      throw APIError.unauthorized
+    }
+  }
+
   func create(
     name: String,
     slug: String,
@@ -173,6 +262,15 @@ private struct CreatePlaceRequest: Encodable {
     let lat: Double
     let lng: Double
   }
+}
+
+/// Body for the PostgREST PATCH. All three columns are single-word, so the
+/// encoder's `convertToSnakeCase` is a no-op here — the JSON keys match the
+/// `places` column names verbatim.
+private struct UpdatePlaceRequest: Encodable {
+  let name: String
+  let tagline: String
+  let accent: String
 }
 
 /// Response from `POST /api/places`. The worker returns the slug plus

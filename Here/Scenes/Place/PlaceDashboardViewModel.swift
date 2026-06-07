@@ -18,6 +18,8 @@ final class PlaceDashboardViewModel: ViewModelType {
     let refresh: @MainActor () async -> Void
     let toggleStreamKey: @MainActor () -> Void
     let copy: @MainActor (String, String) -> Void
+    let applyEdit: @MainActor (Place) -> Void
+    let delete: @MainActor () async -> Bool
   }
 
   struct Output {
@@ -27,6 +29,7 @@ final class PlaceDashboardViewModel: ViewModelType {
     var isLoadingCredentials: Bool
     var errorMessage: String?
     var streamKeyRevealed: Bool
+    var isDeleting: Bool
     /// Short-lived toast: e.g. "RTMPS URL copied". `nil` when no toast is
     /// being shown. The view watches this and clears it on a timer.
     var copyToast: String?
@@ -55,6 +58,7 @@ final class PlaceDashboardViewModel: ViewModelType {
       isLoadingCredentials: prefetchedCredentials == nil,
       errorMessage: nil,
       streamKeyRevealed: false,
+      isDeleting: false,
       copyToast: nil
     )
   }
@@ -64,7 +68,9 @@ final class PlaceDashboardViewModel: ViewModelType {
       load: { [weak self] in await self?.load() },
       refresh: { [weak self] in await self?.refresh() },
       toggleStreamKey: { [weak self] in self?.toggleStreamKey() },
-      copy: { [weak self] value, label in self?.copy(value: value, label: label) }
+      copy: { [weak self] value, label in self?.copy(value: value, label: label) },
+      applyEdit: { [weak self] place in self?.applyEdit(place) },
+      delete: { [weak self] in await self?.delete() ?? false }
     )
   }
 
@@ -150,6 +156,33 @@ final class PlaceDashboardViewModel: ViewModelType {
   /// Called by the view after the toast's display window elapses.
   func clearToast() {
     output.copyToast = nil
+  }
+
+  /// Reflects the row returned by the edit sheet without a re-fetch.
+  private func applyEdit(_ place: Place) {
+    output.place = place
+  }
+
+  /// Deletes this place via the worker (which also cleans up the Cloudflare
+  /// Live Input). Returns `true` on success so the view can pop back to the
+  /// list; surfaces the error in-place otherwise.
+  private func delete() async -> Bool {
+    guard !output.isDeleting else { return false }
+    output.isDeleting = true
+    output.errorMessage = nil
+    defer { output.isDeleting = false }
+
+    do {
+      try await placesService.delete(slug: slug)
+      return true
+    } catch APIError.unauthorized {
+      // Session already cleared in the service; the coordinator routes to
+      // /sign-in on the next render.
+      return false
+    } catch {
+      surfaceError(error)
+      return false
+    }
   }
 
   // MARK: - Derived

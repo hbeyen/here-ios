@@ -21,7 +21,11 @@ struct PlacesView: View {
       }
       .navigationBarHidden(true)
       .navigationDestination(item: $justCreated) { created in
-        PlaceDashboardView(slug: created.slug, credentials: created.credentials)
+        PlaceDashboardView(
+          slug: created.slug,
+          credentials: created.credentials,
+          onDeleted: { Task { await viewModel.input.refresh() } }
+        )
       }
     }
     .task {
@@ -160,7 +164,10 @@ struct PlacesView: View {
       Section {
         ForEach(viewModel.output.places) { place in
           NavigationLink {
-            PlaceDashboardView(place: place)
+            PlaceDashboardView(
+              place: place,
+              onDeleted: { Task { await viewModel.input.refresh() } }
+            )
           } label: {
             PlaceRow(place: place)
           }

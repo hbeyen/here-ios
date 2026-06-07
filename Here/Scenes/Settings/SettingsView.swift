@@ -8,15 +8,21 @@ struct SettingsView: View {
   let onSignOut: () -> Void
 
   @Environment(\.dismiss) private var dismiss
+  @State private var viewModel: SettingsViewModel
   @State private var isSignOutConfirmed = false
+  @FocusState private var nameFieldFocused: Bool
+
+  init(user: SessionService.CurrentUser, onSignOut: @escaping () -> Void) {
+    self.user = user
+    self.onSignOut = onSignOut
+    _viewModel = State(wrappedValue: SettingsViewModel(displayName: user.displayName))
+  }
 
   var body: some View {
     NavigationStack {
       Form {
         Section("Profile") {
-          if let displayName = user.displayName, !displayName.isEmpty {
-            row(label: "Name", value: displayName)
-          }
+          displayNameRow
           if let email = user.email, !email.isEmpty {
             row(label: "Email", value: email)
           }
@@ -51,6 +57,77 @@ struct SettingsView: View {
         Button("Cancel", role: .cancel) {}
       } message: {
         Text("You'll need to sign in again to see your places.")
+      }
+    }
+  }
+
+  // MARK: - Display name
+
+  @ViewBuilder
+  private var displayNameRow: some View {
+    if viewModel.output.isEditingName {
+      VStack(alignment: .leading, spacing: 10) {
+        TextField(
+          "Display name",
+          text: Binding(
+            get: { viewModel.output.draftName },
+            set: { viewModel.input.setDraftName($0) }
+          )
+        )
+        .textInputAutocapitalization(.words)
+        .submitLabel(.done)
+        .focused($nameFieldFocused)
+        .onSubmit { Task { await viewModel.input.saveName() } }
+        .disabled(viewModel.output.isSaving)
+
+        if let error = viewModel.output.errorMessage {
+          Text(error)
+            .font(.system(size: 12))
+            .foregroundStyle(.orange)
+        }
+
+        HStack(spacing: 12) {
+          Button("Cancel") {
+            viewModel.input.cancelEditingName()
+            nameFieldFocused = false
+          }
+          .disabled(viewModel.output.isSaving)
+          Spacer()
+          if viewModel.output.isSaving {
+            ProgressView()
+          } else {
+            Button("Save") {
+              Task {
+                await viewModel.input.saveName()
+                nameFieldFocused = false
+              }
+            }
+            .fontWeight(.semibold)
+          }
+        }
+      }
+      .onAppear { nameFieldFocused = true }
+    } else {
+      Button {
+        viewModel.input.beginEditingName()
+      } label: {
+        HStack {
+          Text("Name")
+            .foregroundStyle(.secondary)
+          Spacer()
+          if let name = viewModel.output.displayName, !name.isEmpty {
+            Text(name)
+              .foregroundStyle(.primary)
+              .multilineTextAlignment(.trailing)
+              .lineLimit(2)
+          } else {
+            Text("Add")
+              .foregroundStyle(.tint)
+          }
+          Image(systemName: "chevron.right")
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(.tertiary)
+        }
       }
     }
   }
