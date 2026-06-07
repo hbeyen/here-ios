@@ -34,14 +34,22 @@ final class APIClient {
     _ request: URLRequest,
     expecting: Response.Type
   ) async throws -> Response {
-    let (data, _) = try await perform(request)
+    let (data, http) = try await perform(request)
     if Response.self == EmptyResponse.self, let empty = EmptyResponse() as? Response {
       return empty
     }
     do {
       return try decoder.decode(Response.self, from: data)
     } catch {
-      throw APIError.decoding(error)
+      // 2xx responses can still carry an error envelope (Supabase
+      // occasionally returns 200 with `{ error, error_description }` when
+      // an upstream provider rejected the request). Try the envelope parse
+      // first; fall back to surfacing the raw body alongside the decode
+      // error so a human can see what came back.
+      if let parsed = APIClient.parseErrorMessage(from: data) {
+        throw APIError.serverMessage(status: http.statusCode, message: parsed, body: bodyPreview(from: data))
+      }
+      throw APIError.decoding(error, body: bodyPreview(from: data))
     }
   }
 
