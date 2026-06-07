@@ -50,6 +50,7 @@ Same as Here-Audio:
 - **Comments only for non-obvious "why"** — same rule as Here-Audio.
 - **One type per file** wherever possible (Coordinator, ViewModel, View can co-locate when tightly coupled).
 - **No singletons except the DI Locator** — everything else goes through constructor injection or `@Locatable`.
+- **Decodable models: NO snake_case `CodingKeys`.** `APIClient.defaultDecoder()` sets `keyDecodingStrategy = .convertFromSnakeCase`. Adding an explicit `CodingKeys` with snake_case raw values (e.g. `case accessToken = "access_token"`) double-converts and makes EVERY field fail as `keyNotFound` ("data couldn't be read because it is missing"). Use camelCase property names and let the strategy map snake_case JSON. `Place.swift` is the reference. (This cost a debugging session on 2026-05-19 — see CONDUCTOR.md.)
 
 ## Reference repos are read-only
 
