@@ -93,11 +93,58 @@ final class APIClient {
     case 200..<300:
       return (data, http)
     case 401, 403:
+      // Try to surface the parsed message too — Supabase tells us things
+      // like "No API key found in request" via the `message` field, which
+      // is much more useful than a bare "Session expired".
+      if let parsed = APIClient.parseErrorMessage(from: data) {
+        throw APIError.serverMessage(status: http.statusCode, message: parsed, body: bodyPreview(from: data))
+      }
       throw APIError.unauthorized
     default:
-      let body = String(data: data, encoding: .utf8)
-      throw APIError.server(status: http.statusCode, body: body)
+      if let parsed = APIClient.parseErrorMessage(from: data) {
+        throw APIError.serverMessage(status: http.statusCode, message: parsed, body: bodyPreview(from: data))
+      }
+      throw APIError.server(status: http.statusCode, body: bodyPreview(from: data))
     }
+  }
+
+  /// Attempts to pull a human-readable message out of an error response body.
+  /// Tries the shapes Supabase + the worker actually return today:
+  ///
+  /// - `{"code": 400, "error_code": "validation_failed", "msg": "..."}`         (gotrue v2)
+  /// - `{"error": "invalid request", "error_description": "..."}`               (gotrue OAuth-style)
+  /// - `{"message": "...", "hint": "..."}`                                       (Supabase gateway / PostgREST)
+  /// - `{"error": "..."}`                                                        (plain)
+  ///
+  /// Falls back to nil if the body isn't JSON or doesn't contain anything
+  /// we recognise; callers should then surface the raw body instead.
+  static func parseErrorMessage(from data: Data) -> String? {
+    guard !data.isEmpty,
+          let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+      return nil
+    }
+    let candidates: [String?] = [
+      json["error_description"] as? String,
+      json["msg"] as? String,
+      json["message"] as? String,
+      json["error"] as? String,
+      json["hint"] as? String,
+      (json["error_code"] as? String).map { "\($0)" }
+    ]
+    let first = candidates.compactMap { $0 }.first { !$0.isEmpty }
+    return first
+  }
+
+  /// First ~200 chars of the body for logging/diagnostic purposes.
+  private func bodyPreview(from data: Data) -> String? {
+    guard let body = String(data: data, encoding: .utf8), !body.isEmpty else {
+      return nil
+    }
+    let limit = 200
+    if body.count <= limit {
+      return body
+    }
+    return String(body.prefix(limit)) + "…"
   }
 
   static func defaultEncoder() -> JSONEncoder {

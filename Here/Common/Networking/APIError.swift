@@ -4,6 +4,10 @@ enum APIError: Error, LocalizedError {
   case invalidURL
   case transport(Error)
   case server(status: Int, body: String?)
+  /// A 4xx/5xx response where we managed to decode a meaningful message out
+  /// of the body. Carries the parsed message plus the original status + raw
+  /// body so callers can log/diagnose if needed.
+  case serverMessage(status: Int, message: String, body: String?)
   case decoding(Error)
   case unauthorized
 
@@ -18,6 +22,8 @@ enum APIError: Error, LocalizedError {
         return "Server error (\(status)): \(body)"
       }
       return "Server error (\(status))."
+    case .serverMessage(let status, let message, _):
+      return "HTTP \(status): \(message)"
     case .decoding(let error):
       return "Could not parse response: \(error.localizedDescription)"
     case .unauthorized:
